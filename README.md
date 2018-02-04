@@ -1,5 +1,6 @@
 # the pipeline description
 scripts for read-depth cnv annotation
+git clone https://github.com:ksenia-krasheninnikova/cnv_scripts.git
 
 Requires:
 
@@ -17,9 +18,9 @@ Requires:
 4. Partition scaffolds and contigs into kmers of 36bp (with adjacent khmers overlapping 5 bps) and map them to the assembly using mrsFast to account for multi mappings’ 
 ex.:
 ```bash
-split_assembly_to_substrings  path_to_reference.fa 36 5 > reference.kmers_36_5.fa 
+split_assembly_to_substrings  reference.fa 36 5 > reference.kmers_36_5.fa 
 
-mrsfast --threads 64 --search path_to_reference.fa --seq  reference.kmers_36_5.fa -o reference.kmers_36_5.sam
+mrsfast --threads 64 --search reference.fa --seq  reference.kmers_36_5.fa -o reference.kmers_36_5.sam
 ```
 
 find overrepresented kmers (mapped more than twice)
@@ -36,7 +37,7 @@ b. get regions from sam to bed
 ```bash
 awk '{if (NF > 10) print $3"\t"$4"\t"$4+36;}'  reference.kmers_36_5_overrepresented_kmers.sam >  reference.kmers_36_5_overrepresented_kmers.bed
 
-samtools view -bT path_to_reference.fa reference.kmers_36_5.sam | samtools sort --threads 5 > reference.kmers_36_5.bam
+samtools view -bT reference.fa reference.kmers_36_5.sam | samtools sort --threads 5 > reference.kmers_36_5.bam
 
 samtools index reference.kmers_36_5.bam
 
@@ -52,7 +53,7 @@ cat kmers_36_5/*.bed > kmers_36_5/all.bed
 
 mask from bed
 ```bash
-maskFastaFromBed -fi reference -bed kmers_36_5/all.bed -fo reference.kmers_36_5_overrepresented_kmers.fa
+maskFastaFromBed -fi reference.fa -bed kmers_36_5/all.bed -fo reference.kmers_36_5_overrepresented_kmers.fa
 ```
 
 5. Importantly, because reads will not map to positions covering regions masked in the reference assembly, read depth will be lower at the edges of these regions, which could underestimate the copy number in the subsequent step. To avoid this, the 36 bps flanking any masked region or gap were masked as well and thus not included within the defined windows.
@@ -78,8 +79,11 @@ mrcanavar --prep -fasta reference.final.fa -gaps hg38.gaps.bed -conf reference.c
 ```
 
 **Process Individuals**
+```bash
+run_individuals_fastq_mapping pe_1.fastq pe_2.fastq reference.final.fa id working_dir  destination_dir/id reference.conf --threads 10
+```
 
-see run_Mallick.sh script
+see run_Mallick.sh 
 
 
 **References:**
