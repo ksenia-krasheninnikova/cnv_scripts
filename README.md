@@ -1,4 +1,4 @@
-# cnv_scripts
+# the pipeline description
 scripts for read-depth cnv annotation
 
 Requires:
