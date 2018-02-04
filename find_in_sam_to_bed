@@ -1,0 +1,36 @@
+#!/usr/bin/env python
+
+import os
+import argparse
+import pysam
+
+READ_LENGTH = 36
+
+def load_filter(lst):
+    l = []
+    with open(lst) as f:
+        for line in f:
+            line = line.strip().split()[-1]
+            l.append(line)
+    return l
+
+#supposed that sam file has the name of reference chromosome
+#x/y/z/chr3.sam
+def print_bed_from_list(sam, l):
+    with open(os.path.splitext(sam)[0]+'.bed','w') as f:
+        samfile = pysam.AlignmentFile(sam,'r')
+        base = os.path.basename(sam)
+        base = os.path.splitext(base)[0]
+        for s in samfile:
+            if s.query_sequence in l:
+                f.write('\t'.join(['chr'+base,str(s.reference_start),str(s.reference_start+READ_LENGTH)])+'\n')
+                #print '\t'.join([s.query_name.split('.')[0],str(s.reference_start),str(s.reference_start+READ_LENGTH)])
+
+if __name__ == '__main__' :
+    parser = argparse.ArgumentParser()
+    parser.add_argument('sam')
+    parser.add_argument('lst')
+    args = parser.parse_args()
+    l = load_filter(args.lst)
+    print_bed_from_list(args.sam, l)
+
