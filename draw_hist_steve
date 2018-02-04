@@ -1,0 +1,54 @@
+#!/usr/bin/env python
+
+import bisect
+import sys
+import argparse
+import matplotlib
+matplotlib.use('Agg')
+from matplotlib.backends.backend_pdf import PdfPages
+import matplotlib.pyplot as plt
+import numpy as np     
+
+def parse_values(path):
+    data = []
+    with open(path) as f:
+        for line in f:
+            line = line.strip().split(' ')
+            if line[1] == '0.00':
+                continue
+            name=line[0].split('chr')
+            data.append((int(name[1]),100*float(line[1])))
+    data = sorted(data,key=lambda x:x[0])
+    return data
+
+paper = [4.2,2.5,1.0,1.8,2.8,1.5,4.8,4.9,8.5,4.0,2.0,2.8,1.3,4.5,7.8,8.9,5.2,1.1,4.5,2.1,2.5,16.0]
+if __name__ == '__main__' :
+    parser = argparse.ArgumentParser()
+    parser.add_argument('paths', nargs='+')
+    args = parser.parse_args()
+    pp=PdfPages('./chrom_seg_dups.pdf')
+    plt.ylabel('Proportion of genome (%)')
+    plt.title('CNV gains in different datasets')
+    #x_axis = np.arange(1, len(paper) + 1, 1)
+    colors = ['springgreen', 'darkorange', 'firebrick', 'gray']
+    i = 0
+    diff = 0
+    w = 0.8
+    offset = (len(args.paths)+1+1)*w 
+    x_axis = range(1, len(paper) + 1)
+    x_axis = map(lambda x:x*offset,x_axis)
+    plts = []
+    for path in args.paths:
+        data = parse_values(path)
+        p = plt.bar(map(lambda x:x+diff+offset, x_axis), map(lambda x:x[1],data), width=w, align='center', facecolor=colors[i], alpha=0.5)
+        plts.append(p)
+        i += 1
+        diff += w
+        ##'springgreen'(pskov), 'darkorange'(novgorod), 'firebrick'(yakutsk), 'gray'(all)
+    #p = plt.bar(map(lambda x:x+diff+offset, x_axis),paper,width=w, align='center', facecolor='blue', alpha=0.5)
+    #plts.append(p)
+    plt.xticks(map(lambda x: x+offset, x_axis), map(lambda x:'chr'+str(x[0]),data),fontsize=8,rotation=45)
+    #plt.legend(plts,['Novgorod SDs','Pskov SDs','Yakutsk SDs','CNVRs in Zarrei et al'],fontsize=8)
+    plt.legend(plts,['Novgorod SDs','Pskov SDs','Yakutsk SDs'],fontsize=8)
+    plt.savefig(pp, format='pdf')
+    pp.close()

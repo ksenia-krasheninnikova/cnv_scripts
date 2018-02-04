@@ -1,0 +1,152 @@
+#!/usr/bin/env python
+'''
+script for procesing mrcanavar output. draws copy number to density plot
+'''
+
+import bisect
+import sys
+import argparse
+import numpy
+from collections import Counter
+import matplotlib
+matplotlib.use('Agg')
+from matplotlib.backends.backend_pdf import PdfPages
+import matplotlib.pyplot as plt
+import pylab as pl
+import os
+         
+color_names = ['purple','firebrick','darkgoldenrod','green','darkorange', 'fuchsia','cyan','yellow','blue','black','red','gray','coral','plum', 'gold','navy','springgreen','burlywood','darkgreen','crimson','darkkhaki','darkorange','dodgerblue','darksalmon']
+
+def collect_colors():
+    colors = []
+    for name, hex in matplotlib.colors.cnames.iteritems():
+        colors.append(name)
+    return colors
+
+
+def get_weighted_average_for_window(chrs, window_size, cnvs) :
+    overlap = []
+    cnvs = filter(lambda x: x[0] == chrs, cnvs)
+    if not cnvs:
+        return []
+    cnvs = sorted(cnvs, key=lambda x:x[1])
+    weighted_average = []
+    start = 0
+    end = window_size
+    max_end = 0
+    while (1):
+        for e in cnvs:
+            if start <= e[1] and end >= e[2]:
+                overlap.append((e[1],e[2],e[3]))
+            elif start <= e[1] and end <= e[2] and end >= e[1]:
+                overlap.append((e[1],end,e[3]))
+            elif start >= e[1] and end <= e[2]:
+                overlap.append((start,end,e[3]))
+            elif start >= e[1] and end >= e[2] and start <= e[2]:
+                overlap.append((start,e[2],e[3]))
+        if not overlap:
+            weighted_average.append(0)
+        else:
+            s = map(lambda x: (x[1]-x[0]+1)*x[2], overlap)
+            min_start = min([x[0] for x in overlap]) 
+            max_end = max([x[1] for x in overlap])
+            weighted_average.append(sum(s) / (max_end - min_start + 1))
+        if max_end == max([x[2] for x in cnvs]):
+            return weighted_average
+        start += window_size
+        end += window_size
+        overlap = []
+
+
+def parse_cnvs(path):
+    cnvs = []
+    with open(path) as f:
+        f.readline()
+        for line in f:
+            line = line.strip().split()
+            if not line:
+                continue
+            cnvs.append([(line[0]),int(line[1]), int(line[2]), float(line[4])])
+    return cnvs
+
+def parse_scaffolds(path):
+    l = []
+    with open(path) as f:
+        for line in f:
+            l.append(line.strip())
+    return l
+if __name__ == '__main__' :
+    parser = argparse.ArgumentParser()
+    parser.add_argument('a', help='first specie copynumber file')
+    parser.add_argument('bs', help='second specie copynumber file', nargs='+')
+    parser.add_argument('scaffolds', help='list of scaffolds to show')
+    parser.add_argument('outfolder')
+    args = parser.parse_args()
+    scaffolds = parse_scaffolds(args.scaffolds)
+    #dim_y = 2
+    #dim_x = len(scaffolds) / dim_y
+    #if len(scaffolds) % dim_y:
+        #dim_x += 1
+    #f, frames = plt.subplots(dim_x, dim_y, sharex='col', sharey='row')
+    #print dim_x, dim_y
+    #chrs_list = ['scaffold_4']
+    #k = 0 
+    #p = 0
+    cnvs = parse_cnvs(args.a)
+    chrs_list = set([x[0] for x in cnvs])
+    window_size = 500
+    #axes = [] 
+    for chrs in scaffolds:
+        print chrs
+    #chrs = 'scaffold_4'
+        a_av = get_weighted_average_for_window(chrs, window_size, cnvs)
+        if not a_av:
+            continue
+        name_a = os.path.splitext(os.path.basename(args.a))[0]
+        name_a = name_a.split('.')[0]
+        i = 0
+        pp=PdfPages(os.path.join(args.outfolder,chrs+'.pdf'))
+        for b in args.bs:
+            b_cnvs = parse_cnvs(b)
+            #for chrs in chrs_list:
+            b_av = get_weighted_average_for_window(chrs, window_size, b_cnvs)
+            if not b_av:
+                continue
+            name_b = os.path.splitext(os.path.basename(b))[0]
+            name_b = name_b.split('.')[0]
+            '''
+            a_av_cor = []
+            b_av_cor = []
+            for j in range(len(a_av)):
+                if a_av[j] > 1.5 and a_av[j] < 2.5 and b_av[j] > 1.5 and b_av[j] < 2.5: 
+                    continue
+                a_av_cor.append(a_av[j])
+                b_av_cor.append(b_av[j])
+            '''
+            a_av_cor = a_av
+            b_av_cor = b_av
+            plt.plot(a_av_cor, b_av_cor, 'x',label=name_b, color=color_names[i], alpha=0.5)
+            #ax = frames[k,p].plot(a_av_cor, b_av_cor, 'x',label=name_b, color=color_names[i])
+            #frames[k,p].set_xlim([0, dim_x/2])
+            #frames[k,p].set_ylim([0, 40])
+            #axes.append(ax)
+            i += 1
+        plt.xlim([0,120])
+        plt.ylim([0,100])
+        plt.xlabel('Copy number '+ chrs + ' ' +name_a)
+        plt.ylabel('Copy number other individs ' + chrs)
+        plt.legend(fontsize=10)
+        plt.savefig(pp, format='pdf')
+
+        plt.clf()
+        pp.close()
+        #p += 1
+        #if p == dim_y:
+        #    k += 1
+        #    p = 0
+ 
+    #plt.xlabel('Copy number '+ chrs + ' ' +name_a)
+    #plt.ylabel('Copy number other individs ' + chrs)
+    #frames[0,0].legend(fontsize=10)
+    #plt.savefig(pp, format='pdf')
+    #pp.close()

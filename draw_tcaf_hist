@@ -1,0 +1,27 @@
+#!/usr/bin/env python
+
+import bisect
+import sys
+import argparse
+import matplotlib
+matplotlib.use('Agg')
+from matplotlib.backends.backend_pdf import PdfPages
+import matplotlib.pyplot as plt
+         
+
+tcaf1_values=[("JH-016P", 5.57),("JH-027F", 4.76),("JH-027M", 4.77),("JH-027P", 4.75),("JH-028P", 4.75),\
+            ("JH-029P", 5.80),("JH-030P", 5.70),("JH-031P", 6.74),("JH-032P", 5.74),("JH-057P", 4.70),\
+            ("HGDP(N=236)", 4.1), ("1000 Genomes", 4.0)]
+
+if __name__ == '__main__' :
+    parser = argparse.ArgumentParser()
+    parser.add_argument('paths', nargs='+')
+    args = parser.parse_args()
+    pp=PdfPages('./tcaf1_gene.pdf')
+    plt.ylabel('Density')
+    tcaf1_values = dict(tacf1_values)
+    for path in args.paths:
+       n, bins, patches = plt.hist(tcaf1_values.keys(), tcaf1_values.vaues(), facecolor='green', alpha=0.5)
+    plt.legend(fontsize=10)
+    plt.savefig(pp, format='pdf')
+    pp.close()

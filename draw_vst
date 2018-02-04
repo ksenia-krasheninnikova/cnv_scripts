@@ -1,0 +1,87 @@
+#!/usr/bin/env python
+
+import bisect
+import sys
+import argparse
+import matplotlib
+matplotlib.use('Agg')
+from matplotlib.backends.backend_pdf import PdfPages
+import matplotlib.pyplot as plt
+import numpy as np     
+from collections import defaultdict
+
+def parse_values(path):
+    data = defaultdict(list)
+    with open(path) as f:
+        for line in f:
+            line = line.strip().split()
+            if line[3] == 'nan':
+                continue
+            data[line[0]].append((int(line[1]),int(line[2]),float(line[3])))
+    return data
+
+def parse_sizes(size_file):
+    chrs = []
+    with open(size_file) as f:
+        for line in f:
+            line = line.strip().split()
+            if line[0] in('chrM', 'chrX', 'chrY'):
+                continue
+            chrs.append((line[0],int(line[1])))
+    chrs = sorted(chrs, key=lambda x: int(x[0].split('chr')[-1]))
+    return chrs
+
+color_names = ['purple','firebrick','darkgoldenrod','green','darkorange', 'fuchsia',\
+        'cyan','yellow','blue','black','red','gray','coral','plum', 'gold','navy',\
+        'springgreen','burlywood','darkgreen','crimson','darkkhaki','darkorange','dodgerblue','darksalmon']
+
+if __name__ == '__main__' :
+    parser = argparse.ArgumentParser()
+    parser.add_argument('path',help='output produced by ./count_Vst.py')
+    parser.add_argument('sizes',help='genome sizes produced by faSize -detailed')
+    args = parser.parse_args()
+    pp=PdfPages('./vst.mvol-yak.pdf')
+    data = parse_values(args.path)
+    chrs = parse_sizes(args.sizes)
+    plt.xlabel('Human genome')
+    plt.title('Mallick et al Vologda - Yakutsk Vst values')  
+    fig = matplotlib.pyplot.gcf()
+    fig.set_size_inches(30, 6)
+    scale = 10000000.
+    offset = 0
+    used_chrs = []
+    ticks_pos = []
+    i = 0
+    total = []
+    for x in chrs:
+        current_chr = x[0]
+        print current_chr
+        if not x[0] in data:
+            continue
+        values = data[current_chr]
+        used_chrs.append(x[0])
+        for position in values:
+            x_coord = offset + position[0]/scale
+            y_coord = position[-1]
+            if y_coord == 'nan':
+                continue    
+            total.append(float(y_coord))
+            diff = (x[1] - position[0])/scale
+            plt.plot(x_coord, y_coord, color=color_names[i], marker='o', markeredgewidth=0.0) 
+        ticks_pos.append(offset + x[1]/(2*scale))  
+        offset += x[1]/scale
+        i += 1
+    #y_axis = np.arange(1, len(data) + 1, 1)
+    #'springgreen'(pskov), 'darkorange'(novgorod), 'burlywood'(yakutsk), 'gray'(all)
+    #plt.yticks(y_axis, map(lambda x:'chr'+str(x[0]),data))
+    #plt.legend(fontsize=10)
+    mean = np.mean(total)
+    #print total
+    print 'mean:', mean
+    plt.plot((0, x_coord), (mean, mean), color='black', linestyle='--')
+    plt.ylim(0,0.7)
+    plt.xticks(ticks_pos, used_chrs,fontsize=15)
+    plt.tick_params(axis='y', labelsize=14)
+    plt.tight_layout()
+    plt.savefig(pp, format='pdf')
+    pp.close()

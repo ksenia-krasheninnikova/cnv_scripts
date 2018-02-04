@@ -1,0 +1,107 @@
+#!/usr/bin/env python
+
+import os
+import argparse
+import subprocess
+from time import gmtime, strftime
+import shutil
+
+BIN = '/home/genomerussia/tools/cnv_scripts/bin/'
+
+def get_time():
+    return strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime())
+
+def get_name(path):
+    return os.path.basename(path).split('.')[0]
+
+def get_benchmark_log(working_dir):
+    return 'command time -a -o ' + os.path.join(working_dir, 'benchmark_log.txt')
+
+def main(fastq, reference, working_dir, sample_name,  final_dir, conf_file, N=1):
+    print get_time()
+    print 'splitting reads'
+    processes = []
+    commands = []
+    split_reads = []
+    raw_data_dir = os.path.join(working_dir, 'data', sample_name)
+    if not os.path.exists(raw_data_dir):
+        os.makedirs(raw_data_dir)
+    for e in fastq:
+        name = get_name(e)
+        split_reads.append(os.path.join(raw_data_dir,name+'.fasta'))
+        commands.append(' '.join([os.path.join(BIN,'split_reads'), e, '>', split_reads[-1]]))
+    processes = [subprocess.Popen(cmd, shell=True) for cmd in commands]
+    for p in processes: p.wait()
+    print commands
+    print get_time()
+    print 'merging results into one file'
+    command = 'cat '
+    for e in split_reads:
+        command += e + ' '
+    split_reads = os.path.join(raw_data_dir, 'split_reads.fa')
+    command += '> ' + split_reads 
+    subprocess.call(command, shell=True)
+    print command
+    print get_time()
+    print 'splitting reads into chunks'
+    chunk_dir = os.path.join(working_dir,'chunks', sample_name)
+    if not os.path.exists(chunk_dir):
+        os.makedirs(chunk_dir)
+    pref = '/home/genomerussia/tools/exonerate/bin/'
+    command = get_benchmark_log(working_dir) + ' ' + pref+'fastasplit -c 88 ' + split_reads + ' ' + chunk_dir
+    print command
+    subprocess.call(command, shell=True)
+    print get_time()
+    '''
+    print 'cleaning raw data'
+    for e in os.listdir(chunk_dir):
+        statinfo = os.path.getsize(e)
+        if statinfo == 0:
+            raise Exception('chunks contain empty file(s)!')
+    command = get_benchmark_log(working_dir) + 'rm ' + raw_data_dir + '/*'
+    subprocess.call(command, shell=True)
+    '''
+    print 'run read mapping'
+    output_dir = os.path.join(working_dir,'map',sample_name)
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    command = ' '.join([get_benchmark_log(working_dir), os.path.join(BIN,'run_mrfast_parallel'), chunk_dir, str(N), reference, output_dir])
+    print command
+    subprocess.call(command, shell=True)
+    print get_time()
+    print 'running conf mode'
+    if not os.path.exists(args.final_dir):
+        os.makedirs(args.final_dir)
+    depth = os.path.join(final_dir,sample_name+'.depth')
+    command = ' '.join(['mrcanavar --read -conf',conf_file,'-samdir',output_dir,'-depth',depth])
+    subprocess.call(command, shell=True)
+    print get_time()
+    print 'running call mode'
+    command = ' '.join(['mrcanavar --call -conf', conf_file, '-depth', depth, '-o', os.path.join(final_dir,'result')])
+    subprocess.call(command, shell=True)
+    '''
+    if os.path.exists(output_dir):
+        try:
+            shutil.move(output_dir, final_dir)
+        except shutil.Error as err:
+            raise err
+    ''' 
+    print get_time()
+    print 'completed'
+
+if __name__ == '__main__' :
+    parser = argparse.ArgumentParser()
+    parser.add_argument('reads', nargs = '+', help='fastq')
+    parser.add_argument('reference')
+    parser.add_argument('sample_name')
+    parser.add_argument('working_dir')
+    parser.add_argument('final_dir')
+    parser.add_argument('conf_file')
+    parser.add_argument('--threads', nargs='?', help='number of threads [1]')
+    args = parser.parse_args()
+    if not os.path.exists(args.working_dir):
+        os.makedirs(args.working_dir)
+    if args.threads:
+        main(args.reads, args.reference, args.working_dir, args.sample_name, args.final_dir, args.conf_file, int(args.threads))
+    else:
+        main(args.reads, args.reference, args.working_dir, args.sample_name, args.conf_file, final_dir)

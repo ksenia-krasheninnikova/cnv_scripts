@@ -1,0 +1,46 @@
+#!/usr/bin/env python
+
+import sys
+import argparse
+
+PADDING_SIZE=36
+
+def mask_padding(fasta):
+    with open(fasta) as f:
+        seq = ''
+        for line in f:
+            if '>' in line:
+                if seq != '' :
+                    seq_padded = ''
+                    if 'N' in seq[:PADDING_SIZE]:
+                        seq_padded = 'N'*PADDING_SIZE
+                    else:
+                        seq_padded = seq[:PADDING_SIZE]
+                    i = PADDING_SIZE
+                    while i < len(seq)-PADDING_SIZE:
+                        if seq[i] != 'N' and seq[i+PADDING_SIZE] == 'N':
+                            seq_padded += PADDING_SIZE*'N'
+                            i += PADDING_SIZE
+                        elif seq[i-1] == 'N' and seq[i] != 'N':
+                            seq_padded += (PADDING_SIZE)*'N'
+                            i += PADDING_SIZE
+                        else:
+                            seq_padded += seq[i]
+                            i+=1
+                    if seq[len(seq)-PADDING_SIZE-1] == 'N':
+                        seq_padded += 'N'*min(PADDING_SIZE,len(seq)-i)
+                    else:
+                        seq_padded += seq[i:]
+                    print seq_padded
+                print line.strip()
+                seq = ''
+            else :
+                 line = line.strip()
+                 seq += line
+        print seq
+               
+if __name__ == '__main__' :
+    parser = argparse.ArgumentParser()
+    parser.add_argument('fasta')
+    args = parser.parse_args()
+    mask_padding(args.fasta)
