@@ -11,7 +11,7 @@ Requires:
 
 **Genome Masking**
 
-1. Repeat Finder
+1. Repeat Masker
 2. Tandem Repeat Finder
 3. Window Masker
 (according to [1])
@@ -29,23 +29,9 @@ find overrepresented kmers (mapped more than twice)
 ```
 
 mask overrepresented kmers
-a. filter sam and leave only overrepresented kmers
-```bash
-for i in `cat reference.kmers_36_5.lst | awk {'print $2'}`; do grep -w ${i} reference.kmers_36_5.sam; done > reference.kmers_36_5_overrepresented_kmers.sam
-```
-b. get regions from sam to bed
-```bash
-awk '{if (NF > 10) print $3"\t"$4"\t"$4+36;}'  reference.kmers_36_5_overrepresented_kmers.sam >  reference.kmers_36_5_overrepresented_kmers.bed
-
-samtools view -bT reference.fa reference.kmers_36_5.sam | samtools sort --threads 5 > reference.kmers_36_5.bam
-
-samtools index reference.kmers_36_5.bam
-
-mkdir kmers_36_5/
-#reference lst is the list of scaffolds
-while read p; do samtools view -h reference.kmers_36_5.bam $p > kmers_36_5/$p.sam; done < reference.lst
 
 **FIXME: invokes zombie-processes and kills I/O**
+```bash
 find_in_sam_to_bed reference.kmers_36_5.sam reference.kmers_36_5.lst > reference.kmers_36_5.bed
 
 cat kmers_36_5/*.bed > kmers_36_5/all.bed
