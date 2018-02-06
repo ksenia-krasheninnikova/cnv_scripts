@@ -17,7 +17,7 @@ Requires:
 4. Partition scaffolds and contigs into kmers of 36bp (with adjacent khmers overlapping 5 bps) and map them to the assembly using mrsFast to account for multi mappings’ 
 ex.:
 ```bash
-split_assembly_to_substrings  reference.fa 36 5 > reference.kmers_36_5.fa 
+split_assembly_to_substrings  reference.fa 36 5 | sort | uniq | awk '{print "@kmer"NR"\n"$0}'> reference.kmers_36_5.fa 
 
 mrsfast --threads 64 --search reference.fa --seq  reference.kmers_36_5.fa -o reference.kmers_36_5.sam
 ```
