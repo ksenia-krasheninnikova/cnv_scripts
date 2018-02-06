@@ -7,24 +7,15 @@ import utils
 
 def read_genome(fasta,k,kmer_overlap):
     with open(fasta) as f:
-        prefix=''
-        cnt=0
         for line in f:
             if '>' in line:
-                prefix = line.strip().split('>')[1]
-                cnt=0
+                continue
             else:
                 line=line.strip()
                 while len(line)>=k:
-                    cnt+=1
-                    if not 'N' in line:
-                        print '@'+prefix+'.'+str(cnt)
-                        print line[:k]
+                    print line[:k]
                     line = line[k-kmer_overlap:]
                 
-                
-
-         
 
 if __name__ == '__main__' :
     parser = argparse.ArgumentParser()
