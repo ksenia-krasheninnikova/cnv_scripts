@@ -13,8 +13,7 @@ Requires:
 
 1. Repeat Masker
 2. Tandem Repeat Finder
-3. Window Masker
-(according to [1])
+3. Window Masker [deprecated]
 4. Partition scaffolds and contigs into kmers of 36bp (with adjacent khmers overlapping 5 bps) and map them to the assembly using mrsFast to account for multi mappings’ 
 ex.:
 ```bash
