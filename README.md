@@ -19,6 +19,8 @@ ex.:
 ```bash
 split_assembly_to_substrings  reference.fa 36 5 | sort | uniq | awk '{print "@kmer"NR"\n"$0}'> reference.kmers_36_5.fa 
 
+mrsfast --index reference.fa
+
 mrsfast --threads 64 --search reference.fa --seq  reference.kmers_36_5.fa -o reference.kmers_36_5.sam
 ```
 
