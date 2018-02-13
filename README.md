@@ -1,6 +1,7 @@
 # the pipeline description
 scripts for read-depth cnv annotation
-git clone https://github.com:ksenia-krasheninnikova/cnv_scripts.git
+
+git clone https://github.com/ksenia-krasheninnikova/cnv_scripts.git
 
 Requires:
 
