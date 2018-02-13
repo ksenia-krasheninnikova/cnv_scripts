@@ -26,7 +26,7 @@ mrsfast --threads 64 --search reference.fa --seq  reference.kmers_36_5.fa -o ref
 
 find overrepresented kmers (mapped more than twice)
 ```bash
- grep -v -e "@SQ" -e "@HD" reference.kmers_36_5.sam  | cut -f10 | uniq -c | sed 's/ \+ //g' | awk '{if ($1 > 2) print;}'> reference.kmers_36_5.lst
+ grep -v -e "@SQ" -e "@HD" reference.kmers_36_5.sam  | cut -f10 | sort | uniq -c | sed 's/ \+ //g' | awk '{if ($1 > 2) print;}'> reference.kmers_36_5.lst
 ```
 
 mask overrepresented kmers
