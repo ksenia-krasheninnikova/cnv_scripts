@@ -35,7 +35,6 @@ mask overrepresented kmers
 ```bash
 find_in_sam_to_bed reference.kmers_36_5.sam reference.kmers_36_5.lst > reference.kmers_36_5.bed
 
-cat kmers_36_5/*.bed > kmers_36_5/all.bed
 ```
 
 mask from bed
