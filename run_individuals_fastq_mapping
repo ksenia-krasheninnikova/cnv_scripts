@@ -6,7 +6,8 @@ import subprocess
 from time import gmtime, strftime
 import shutil
 
-BIN = '/home/genomerussia/tools/cnv_scripts/bin/'
+#BIN = '/home/genomerussia/tools/cnv_scripts/bin/'
+BIN='./'
 
 def get_time():
     return strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime())
