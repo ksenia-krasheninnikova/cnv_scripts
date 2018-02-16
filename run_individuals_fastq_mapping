@@ -48,7 +48,8 @@ def main(fastq, reference, working_dir, sample_name,  final_dir, conf_file, N=1)
     chunk_dir = os.path.join(working_dir,'chunks', sample_name)
     if not os.path.exists(chunk_dir):
         os.makedirs(chunk_dir)
-    pref = '/home/genomerussia/tools/exonerate/bin/'
+    #pref = '/home/genomerussia/tools/exonerate/bin/'
+    pref = ''
     command = get_benchmark_log(working_dir) + ' ' + pref+'fastasplit -c 88 ' + split_reads + ' ' + chunk_dir
     print command
     subprocess.call(command, shell=True)
@@ -71,8 +72,9 @@ def main(fastq, reference, working_dir, sample_name,  final_dir, conf_file, N=1)
     subprocess.call(command, shell=True)
     print get_time()
     print 'running conf mode'
-    if not os.path.exists(args.final_dir):
-        os.makedirs(args.final_dir)
+    final_dir = os.path.join(final_dir,sample_name)
+    if not os.path.exists(final_dir):
+        os.makedirs(final_dir)
     depth = os.path.join(final_dir,sample_name+'.depth')
     command = ' '.join(['mrcanavar --read -conf',conf_file,'-samdir',output_dir,'-depth',depth])
     subprocess.call(command, shell=True)
