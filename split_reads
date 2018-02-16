@@ -3,6 +3,7 @@
 import sys
 import argparse
 import numpy
+import gzip
 from Bio import SeqIO
 
 START_1 = 9
@@ -35,11 +36,12 @@ def parse(reads):
             return
 
 def read_reads(reads):
-    for seq_record in SeqIO.parse(reads, "fastq"):
-        print '>'+seq_record.id+':1'
-        print seq_record.seq[START_1:END_1]
-        print '>'+seq_record.id +':2'
-        print seq_record.seq[START_2:END_2]
+    with gzip.open(reads,"rt") as handle:
+        for seq_record in SeqIO.parse(handle, "fastq"):
+            print '>'+seq_record.id+':1'
+            print seq_record.seq[START_1:END_1]
+            print '>'+seq_record.id +':2'
+            print seq_record.seq[START_2:END_2]
 
 if __name__ == '__main__' :
     parser = argparse.ArgumentParser()
