@@ -62,6 +62,10 @@ ex.: (get script from https://gtamazian.com/2016/06/23/converting-an-agp-file-to
 ```bash
 agp2bed.py hg38.agp hg38.gaps.bed
 
+OR
+
+./get_gaps.py 306-KK-0012.fasta > gaps.bed
+
 mrcanavar --prep -fasta reference.final.fa -gaps hg38.gaps.bed -conf reference.conf
 ```
 
