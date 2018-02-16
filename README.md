@@ -71,7 +71,7 @@ mrcanavar --prep -fasta reference.final.fa -gaps hg38.gaps.bed -conf reference.c
 
 **Process Individuals**
 ```bash
-run_individuals_fastq_mapping pe_1.fastq pe_2.fastq reference.final.fa id working_dir  destination_dir/id reference.conf --threads 10
+run_individuals_fastq_mapping pe_1.fastq.gz pe_2.fastq.gz reference.final.fa id working_dir  destination_dir/id reference.conf --threads 10
 ```
 
 see run_Mallick.sh 
