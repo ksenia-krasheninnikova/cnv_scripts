@@ -64,14 +64,14 @@ agp2bed.py hg38.agp hg38.gaps.bed
 
 OR
 
-./get_gaps.py 306-KK-0012.fasta > gaps.bed
+get_gaps.py 306-KK-0012.fasta > gaps.bed
 
 mrcanavar --prep -fasta reference.final.fa -gaps hg38.gaps.bed -conf reference.conf
 ```
 
 **Process Individuals**
 ```bash
-run_individuals_fastq_mapping pe_1.fastq.gz pe_2.fastq.gz reference.final.fa id working_dir  destination_dir/id reference.conf --threads 10
+run_individuals_fastq_mapping pe_1.fastq.gz pe_2.fastq.gz reference.final.fa id working_dir  destination_dir reference.conf --threads 10
 ```
 
 see run_Mallick.sh 
