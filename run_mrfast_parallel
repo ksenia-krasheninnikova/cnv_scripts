@@ -4,24 +4,25 @@ import sys
 import argparse
 import subprocess
 import os
+from multiprocessing import Pool
+
+
+def apply_mrfast(param):
+    sample, reference, reads, output = param
+    command = ' '.join(['mrfast','--search',reference,'--seq', os.path.join(reads,sample),'-o',os.path.join(output,sample+'.sam')])
+    subprocess.call(command, shell=True)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('reads',help='folder with reads')
-    parser.add_argument('N',help='number of threads')
+    parser.add_argument('N',type=int,help='number of threads')
     parser.add_argument('reference')
     parser.add_argument('output',help='folder for sam files')
     args = parser.parse_args()
     candidates = set(os.listdir(args.reads))
-    while candidates:
-        i = 0
-        procs = [] 
-        while candidates:
-            f = candidates.pop()
-            command = ' '.join(['mrfast','--search',args.reference,'--seq', os.path.join(args.reads,f),'-o',os.path.join(args.output,f+'.sam')])
-            procs.append(subprocess.Popen(command, shell=True))
-            i += 1
-            if i == int(args.N):
-                break
-        for p in procs:
-            p.wait()
+    params = []
+    for sample in candidates:
+        print >> sys.stderr, 'params for', sample
+        params.append((sample, args.reference, args.reads, args.output))
+    p = Pool(processes = args.N)
+    p.map(apply_mrfast, params)
